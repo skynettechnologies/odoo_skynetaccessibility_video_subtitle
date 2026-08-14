@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Injects the front-end Video Subtitle widget script on every
+        public website page, just before </body>. This is the Odoo
+        equivalent of the {{ skynet_accessibility_video_subtitle }}
+        Statamic tag - instead of a manually-placed template tag, it is
+        wired once into website.layout and can be toggled from
+        Settings > Technical > Parameters > System Parameters
+        (skynet_video_subtitle.enable_widget /
+        skynet_video_subtitle.widget_script).
+    -->
+    <template id="website_widget_snippet"
+              inherit_id="website.layout"
+              name="Skynet Video Subtitle Widget">
+        <xpath expr="//body" position="inside">
+            <t t-set="skynet_vs_enabled"
+               t-value="request.env['ir.config_parameter'].sudo().get_param('skynet_video_subtitle.enable_widget', 'True')"/>
+            <t t-if="skynet_vs_enabled == 'True'">
+                <t t-set="skynet_vs_widget_script"
+                   t-value="request.env['ir.config_parameter'].sudo().get_param(
+                        'skynet_video_subtitle.widget_script',
+                        'https://www.skynettechnologies.com/accessibility/js/video-subtitle/video-subtitle-widget.js')"/>
+                <script id="aioa-adavs" t-att-src="skynet_vs_widget_script" defer="defer"/>
+            </t>
+        </xpath>
+    </template>
+
+</odoo>

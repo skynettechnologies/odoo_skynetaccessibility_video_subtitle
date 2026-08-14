@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Default values only. noupdate="1" so a module upgrade never
+        overwrites a value the admin has already changed by hand under
+        Settings > Technical > Parameters > System Parameters.
+    -->
+    <data noupdate="1">
+
+        <record id="skynet_vs_param_enable_widget" model="ir.config_parameter">
+            <field name="key">skynet_video_subtitle.enable_widget</field>
+            <field name="value">True</field>
+        </record>
+
+        <record id="skynet_vs_param_widget_script" model="ir.config_parameter">
+            <field name="key">skynet_video_subtitle.widget_script</field>
+            <field name="value">https://www.skynettechnologies.com/accessibility/js/video-subtitle/video-subtitle-widget.js</field>
+        </record>
+
+        <record id="skynet_vs_param_api_base" model="ir.config_parameter">
+            <field name="key">skynet_video_subtitle.api_base</field>
+            <field name="value">https://ada.skynettechnologies.us/api/</field>
+        </record>
+
+        <record id="skynet_vs_param_platform" model="ir.config_parameter">
+            <field name="key">skynet_video_subtitle.platform</field>
+            <field name="value">Odoo</field>
+        </record>
+
+        <record id="skynet_vs_param_manage_by_platform" model="ir.config_parameter">
+            <field name="key">skynet_video_subtitle.manage_by_platform</field>
+            <field name="value">0</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Full analytics dashboard, served as a plain website page instead
+        of via a custom controller (Import Module cannot load Python, so
+        there is no route to register it with).
+
+        Matches the reference TYPO3/PHP addon's approach exactly: the
+        server's only job is to print the logged-in user's name/email
+        and the configured API settings into the page. Registration
+        (video-subtitle/get-start) and every other API call (video
+        library, plan packages, active languages) happen entirely via
+        client-side fetch() straight from the browser to the Skynet
+        API - see custom.js in the reference module. No caching of the
+        registration token is done server-side (the reference doesn't
+        do this either); it re-registers on each page load.
+
+        Access is restricted with group_ids on the view itself, so only
+        Settings/Administration users (base.group_system) can open it.
+    -->
+    <record id="view_skynet_vs_dashboard_page" model="ir.ui.view">
+        <field name="name">skynet.video.subtitle.dashboard.page</field>
+        <field name="type">qweb</field>
+        <field name="key">odoo_skynetaccessibility_video_subtitle.dashboard_page</field>
+        <field name="group_ids" eval="[(6, 0, [ref('base.group_system')])]"/>
+        <field name="arch" type="xml">
+            <t t-name="odoo_skynetaccessibility_video_subtitle.dashboard_page">
+                <t t-set="skynet_vs_api_base"
+                   t-value="request.env['ir.config_parameter'].sudo().get_param('skynet_video_subtitle.api_base', 'https://ada.skynettechnologies.us/api/')"/>
+                <t t-set="skynet_vs_platform"
+                   t-value="request.env['ir.config_parameter'].sudo().get_param('skynet_video_subtitle.platform', 'Odoo')"/>
+                <t t-set="skynet_vs_manage_by_platform"
+                   t-value="request.env['ir.config_parameter'].sudo().get_param('skynet_video_subtitle.manage_by_platform', '0')"/>
+
+                <!--
+                    Registration user data (name/email) sent to the Skynet
+                    "get-start" API. Prefer the currently logged-in user
+                    (this page is already restricted to base.group_system,
+                    so that's an admin/Settings user in practice). If that
+                    user has no email/login set for some reason, fall back
+                    to Odoo's default admin user, then finally to the
+                    company's own email - mirrors the reference addon's
+                    "Auth::user() -> config('mail.from.*')" fallback chain.
+                -->
+                <t t-set="skynet_vs_fallback_admin"
+                   t-value="request.env.ref('base.user_admin', raise_if_not_found=False)"/>
+                <t t-set="skynet_vs_reg_user"
+                   t-value="request.env.user if (request.env.user.email or request.env.user.login) else (skynet_vs_fallback_admin or request.env.user)"/>
+                <t t-set="skynet_vs_username" t-value="skynet_vs_reg_user.name or 'Odoo Admin'"/>
+                <t t-set="skynet_vs_useremail"
+                   t-value="skynet_vs_reg_user.email or skynet_vs_reg_user.login or request.env.company.email or ''"/>
+                <html lang="en">
+                    <head>
+                        <meta charset="utf-8"/>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                        <title>Video Subtitle · Analytics &amp; Plans</title>
+
+                        <!-- Bootstrap 5 CSS -->
+                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+                        <!-- Font Awesome 6 -->
+                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+                        <!-- Chart.js -->
+                        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"/>
+                        <link href="/odoo_skynetaccessibility_video_subtitle/static/src/css/vs_style.css" rel="stylesheet"/>
+                    </head>
+                    <body>
+                        <div style="padding:10px 16px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between;">
+                            <a href="/odoo" style="text-decoration:none;color:#420083;">&#8592; Back to Odoo</a>
+                        </div>
+                        <div id="app">
+                            <!-- PAGE HEADER -->
+                            <div class="page-header">
+                                <h1><i class="fas fa-closed-captioning me-2" style="color:var(--primary);"/>SkynetAccessibility Video Subtitle</h1>
+                                <div class="header-right" id="headerRight">
+                                    <!-- Rendered by JS -->
+                                </div>
+                            </div>
+                            <!-- MAIN CONTENT -->
+                            <div id="mainContent">
+                                <!-- ANALYTICS DASHBOARD -->
+                                <div id="analyticsDashboard">
+                                    <!-- Filters -->
+                                    <div class="mb-3">
+                                        <div class="row align-items-center g-2">
+                                            <div class="col-12 col-md d-flex flex-wrap align-items-center justify-content-md-end gap-2 filters-row">
+                                                <div class="dropdown d-none" id="dateDropdown">
+                                                    <button class="btn btn-outline-filter dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="dateRangeToggle">
+                                                        <i class="fas fa-calendar-alt"/>
+                                                        <span id="dateRangeLabel">Loading…</span>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-custom" id="dateDropdownMenu"/>
+                                                </div>
+                                                <div class="widget-language-setting">
+                                                    <div class="mb-0 p-0 m-0 form-switch">
+                                                        <input type="checkbox" id="lang-widget-toggle" class="form-check-input" checked="checked"/>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <span>Generate subtitles based on widget language</span>
+                                                    </div>
+                                                </div>
+                                                <select class="filter-select" id="languageFilter">
+                                                    <option value="all">All Languages</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quota Alert -->
+                                    <div id="quotaAlert" class="row mb-4" style="display:none;">
+                                        <div class="col-12">
+                                            <div class="alert alert-danger alert-quota mb-0 d-flex align-items-center gap-3">
+                                                <i class="fas fa-exclamation-triangle" style="font-size:24px;color:var(--danger);"/>
+                                                <div>
+                                                    <div class="fw-bold fs-6 mb-1">Quota Limit Reached</div>
+                                                    <p class="mb-0">You have reached your quota limit. Please upgrade your plan to continue.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Loading / Error -->
+                                    <div id="apiLoading" style="display:none;">
+                                        <div class="spinner-overlay">
+                                            <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;"/>
+                                            <p class="mt-3 text-muted">Loading video data…</p>
+                                        </div>
+                                    </div>
+                                    <div id="apiError" style="display:none;">
+                                        <div class="error-banner">
+                                            <i class="fas fa-exclamation-circle me-2"/>
+                                            <span id="apiErrorMsg">Failed to load data.</span>
+                                            <button class="btn btn-sm btn-outline-danger ms-3" id="retryBtn">
+                                                <i class="fas fa-redo me-1"/> Retry
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Stat Cards -->
+                                    <div class="row g-3 mb-3" id="statCardsRow">
+                                        <div class="col-6 col-lg-3">
+                                            <div class="card stat-card">
+                                                <div class="card-body d-flex align-items-center gap-3 py-3 px-3 px-xl-4">
+                                                    <div class="icon-box"><i class="fas fa-video"/></div>
+                                                    <div>
+                                                        <div class="fw-medium" style="font-size:16px;color:var(--primary);">Videos Remediated</div>
+                                                        <div class="fw-bold stat-value" style="font-size:30px;" id="statVideos">0</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-lg-3">
+                                            <div class="card stat-card">
+                                                <div class="card-body d-flex align-items-center gap-3 py-3 px-3 px-xl-4">
+                                                    <div class="icon-box"><i class="fas fa-clock"/></div>
+                                                    <div>
+                                                        <div class="fw-medium" style="font-size:16px;color:var(--primary);">Total Time Limit</div>
+                                                        <div class="fw-bold stat-value" style="font-size:30px;" id="statTotalLimit">0 <small style="font-size:14px;font-weight:400;">min</small></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-lg-3">
+                                            <div class="card stat-card">
+                                                <div class="card-body d-flex align-items-center gap-3 py-3 px-3 px-xl-4">
+                                                    <div class="icon-box"><i class="fas fa-hourglass-half"/></div>
+                                                    <div>
+                                                        <div class="fw-medium" style="font-size:16px;color:var(--primary);">Spent Duration</div>
+                                                        <div class="fw-bold stat-value" style="font-size:30px;" id="statSpent">0:00</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-lg-3">
+                                            <div class="card stat-card">
+                                                <div class="card-body d-flex align-items-center gap-3 py-3 px-3 px-xl-4">
+                                                    <div class="icon-box"><i class="fas fa-hourglass-start"/></div>
+                                                    <div>
+                                                        <div class="fw-medium" style="font-size:16px;color:var(--primary);">Remaining Duration</div>
+                                                        <div class="fw-bold stat-value" style="font-size:30px;" id="statRemaining">0:00</div>
+                                                        <div id="lowRemainingBadge" style="display:none;color:var(--danger);font-size:12px;margin-top:2px;">
+                                                            <i class="fas fa-exclamation-circle" style="font-size:12px;"/> Low remaining quota
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Charts -->
+                                    <div class="row g-3 mb-4 align-items-stretch">
+                                        <div class="col-12 col-lg-6">
+                                            <div class="card stat-card h-100">
+                                                <div class="card-body d-flex flex-column align-items-center justify-content-center py-4">
+                                                    <div id="circularContainer"/>
+                                                    <div class="text-center mt-3" style="font-size:14px;" id="usageCaption">Loading…</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <div class="card stat-card h-100">
+                                                <div class="card-body d-flex flex-column align-items-center justify-content-center py-4">
+                                                    <div style="width:100%;height:200px;position:relative;">
+                                                        <canvas id="pieChart"/>
+                                                    </div>
+                                                    <div class="d-flex flex-wrap justify-content-center gap-3 mt-2" id="pieLegend"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Video Library -->
+                                    <div class="video-container">
+                                        <div class="row mb-3 align-items-center">
+                                            <div class="col-12 d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <i class="fas fa-video icon-md" style="color:var(--primary);"/>
+                                                    <h5 class="fw-bold mb-0">Video Library</h5>
+                                                </div>
+                                                <span class="fw-semibold" style="background:var(--primary-light);color:var(--primary);border-radius:999px;padding:4px 14px;font-size:13px;" id="videoCountBadge">0 Videos</span>
+                                            </div>
+                                        </div>
+                                        <div class="row g-3" id="videoGrid"/>
+                                        <div id="emptyState" class="row my-5" style="display:none;">
+                                            <div class="col-12 text-center">
+                                                <i class="fas fa-video-slash" style="font-size:48px;color:var(--gray);"/>
+                                                <h5 class="mt-3 fw-semibold">No videos found</h5>
+                                                <p class="text-muted">Try adjusting your filters or upload a video.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <!-- /analyticsDashboard -->
+                            </div>
+                            <!-- /mainContent -->
+
+                            <!-- VIDEO PREVIEW MODAL -->
+                            <div class="modal fade video-modal" id="videoModal" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-xl modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title fw-semibold">Video Preview</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"/>
+                                        </div>
+                                        <div class="modal-body pt-3 pb-4">
+                                            <div style="position:relative;padding-top:56.25%;">
+                                                <iframe id="videoIframe" src="" title="YouTube video player"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                        allowfullscreen="allowfullscreen"
+                                                        style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:16px;border:none;"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- UPGRADE MODAL -->
+                            <div class="modal fade upgrade-modal" id="upgradeModal" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header border-0">
+                                            <h5 class="modal-title">Upgrade Plan</h5>
+                                            <button type="button" class="upgrade-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                                                <i class="fas fa-times"/>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body pb-4" id="upgradeModalBody">
+                                            <!-- Rendered by JS -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /#app -->
+                        </div>
+
+                        <!-- Hidden values consumed by JS. website/url_token start
+                             empty and are filled in by the registration bootstrap
+                             script below, once the client-side get-start call
+                             returns - mirrors the PHP reference's registerVideoSubtitle(). -->
+                        <input type="hidden" id="savs_website" value=""/>
+                        <input type="hidden" id="savs_url_token" value=""/>
+                        <input type="hidden" id="savs_api_base" t-att-value="skynet_vs_api_base"/>
+                        <input type="hidden" id="savs_platform" t-att-value="skynet_vs_platform"/>
+                        <input type="hidden" id="savs_manage_by_platform" t-att-value="skynet_vs_manage_by_platform"/>
+                        <p id="savs_username" style="display:none;" t-esc="skynet_vs_username"/>
+                        <p id="savs_useremail" style="display:none;" t-esc="skynet_vs_useremail"/>
+
+                        <!-- Bootstrap 5 JS Bundle -->
+                        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"/>
+
+                        <!--
+                            One-time domain registration, done client-side exactly
+                            like the reference addon's registerVideoSubtitle(). No
+                            server-side caching - it re-registers on every page
+                            load, same as the reference. vs-video.js is only
+                            loaded afterwards, since it reads #savs_website /
+                            #savs_url_token synchronously at script-load time.
+                        -->
+                        <script>
+                            (function () {
+                                if (window.__skynetVsBooted) {
+                                    return;
+                                }
+                                window.__skynetVsBooted = true;
+
+                                async function skynetVsRegisterAndBoot() {
+                                    var apiBase = document.getElementById('savs_api_base').value.replace(/\/+$/, '') + '/';
+                                    var platform = document.getElementById('savs_platform').value;
+                                    var manageByPlatform = document.getElementById('savs_manage_by_platform').value;
+                                    var username = document.getElementById('savs_username').textContent.trim();
+                                    var useremail = document.getElementById('savs_useremail').textContent.trim();
+                                    var domain = window.location.hostname;
+
+                                    window.SAVS_API_BASE = apiBase;
+
+                                    var urlToken = '';
+                                    try {
+                                        var formData = new FormData();
+                                        formData.append('website_url', domain);
+                                        formData.append('email', useremail);
+                                        formData.append('name', username);
+                                        formData.append('manage_by_platform',
+                                            (manageByPlatform === '1' || manageByPlatform === 'True' || manageByPlatform === 'true') ? '1' : '0');
+                                        formData.append('platform', platform);
+
+                                        var response = await fetch(apiBase + 'video-subtitle/get-start', {
+                                            method: 'POST',
+                                            body: formData,
+                                        });
+                                        var result = await response.json();
+                                        var nested = (result &amp;&amp; (result.Data || result.data)) || {};
+                                        urlToken = (result &amp;&amp; (result.adon_token || result.token))
+                                            || nested.adon_token || nested.token || '';
+                                    } catch (err) {
+                                        console.error('SkynetAccessibility Video Subtitle registration failed:', err);
+                                    }
+
+                                    document.getElementById('savs_website').value = domain;
+                                    document.getElementById('savs_url_token').value = urlToken;
+
+                                    var script = document.createElement('script');
+                                    script.src = '/odoo_skynetaccessibility_video_subtitle/static/src/js/vs-video.js';
+                                    // vs-video.js's own init logic (which fires
+                                    // the video/plan/language API calls) is
+                                    // wrapped in a document 'DOMContentLoaded'
+                                    // listener. That event has already fired by
+                                    // the time this script loads, so the browser
+                                    // will never call it natively - re-dispatch
+                                    // it manually once vs-video.js has registered
+                                    // its listener.
+                                    script.onload = function () {
+                                        document.dispatchEvent(new Event('DOMContentLoaded'));
+                                    };
+                                    document.body.appendChild(script);
+                                }
+
+                                if (document.readyState === 'loading') {
+                                    document.addEventListener('DOMContentLoaded', skynetVsRegisterAndBoot, { once: true });
+                                } else {
+                                    skynetVsRegisterAndBoot();
+                                }
+                            })();
+                        </script>
+                    </body>
+                </html>
+            </t>
+        </field>
+    </record>
+
+    <record id="website_page_skynet_vs_dashboard" model="website.page">
+        <field name="url">/skynet-video-subtitle-dashboard</field>
+        <field name="view_id" ref="view_skynet_vs_dashboard_page"/>
+        <field name="is_published">True</field>
+        <field name="website_indexed">False</field>
+    </record>
+
+    <record id="action_skynet_vs_dashboard_url" model="ir.actions.act_url">
+        <field name="name">SkynetAccessibility Video Subtitle</field>
+        <field name="url">/skynet-video-subtitle-dashboard</field>
+        <field name="target">self</field>
+    </record>
+
+</odoo>
