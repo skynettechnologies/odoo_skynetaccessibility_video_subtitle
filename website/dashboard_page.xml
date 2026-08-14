@@ -16,14 +16,14 @@
         registration token is done server-side (the reference doesn't
         do this either); it re-registers on each page load.
 
-        Access is restricted with group_ids on the view itself, so only
+        Access is restricted with groups_id on the view itself, so only
         Settings/Administration users (base.group_system) can open it.
     -->
     <record id="view_skynet_vs_dashboard_page" model="ir.ui.view">
         <field name="name">skynet.video.subtitle.dashboard.page</field>
         <field name="type">qweb</field>
         <field name="key">odoo_skynetaccessibility_video_subtitle.dashboard_page</field>
-        <field name="group_ids" eval="[(6, 0, [ref('base.group_system')])]"/>
+        <field name="groups_id" eval="[(6, 0, [ref('base.group_system')])]"/>
         <field name="arch" type="xml">
             <t t-name="odoo_skynetaccessibility_video_subtitle.dashboard_page">
                 <t t-set="skynet_vs_api_base"
