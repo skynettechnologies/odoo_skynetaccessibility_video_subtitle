@@ -12,10 +12,10 @@
         <field name="name">skynet.video.subtitle.config.param.list</field>
         <field name="model">ir.config_parameter</field>
         <field name="arch" type="xml">
-            <list string="SkynetAccessibility Video Subtitle Settings" editable="bottom">
+            <tree string="SkynetAccessibility Video Subtitle Settings" editable="bottom">
                 <field name="key" readonly="1" string="Setting"/>
                 <field name="value" string="Value"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -42,7 +42,7 @@
     <record id="action_skynet_vs_config_param" model="ir.actions.act_window">
         <field name="name">SkynetAccessibility Video Subtitle Settings</field>
         <field name="res_model">ir.config_parameter</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
         <field name="domain">[('key', 'in', [
             'skynet_video_subtitle.enable_widget',
             'skynet_video_subtitle.widget_script',

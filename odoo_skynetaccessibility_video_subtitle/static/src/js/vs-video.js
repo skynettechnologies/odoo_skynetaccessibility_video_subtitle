@@ -1,7 +1,7 @@
 
 /*
  * SkynetAccessibility Video Subtitle - dashboard front-end
- * Odoo 19 port of the statamic-skynet-accessibility-video-subtitle addon.
+ * Odoo 16 port of the statamic-skynet-accessibility-video-subtitle addon.
  * Talks directly to the Skynet Video Subtitle API (video-subtitle/details,
  * video-subtitle/packages, active-language, video-subtitle/settings,
  * video-subtitle/update-settings) - logic unchanged from the reference
