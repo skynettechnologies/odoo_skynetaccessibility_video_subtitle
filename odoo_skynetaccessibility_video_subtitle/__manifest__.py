@@ -3,7 +3,7 @@
     'name': 'SkynetAccessibility Video Subtitle',
     'summary': 'Publish Captioned Video Content with AI-Powered Subtitles',
     'description': "",
-    'version': '1.0.0',
+    'version': '1.1.0',
     'category': 'Website',
     'author': 'Skynet Technologies USA LLC',
     'website': 'https://www.skynettechnologies.com',

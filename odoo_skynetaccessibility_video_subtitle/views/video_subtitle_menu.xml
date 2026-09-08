@@ -3,7 +3,7 @@
 
     <!--
         No custom model/fields are defined (Import Module does not load
-        Python), so this settings screen edits the two
+        Python), so this settings screen edits the four
         ir.config_parameter rows this module ships directly - key/value
         are stock fields on that model. The list view below just gives
         them friendlier labels than the generic System Parameters grid.
@@ -30,9 +30,11 @@
                         <field name="value" string="Value"/>
                     </group>
                     <div class="text-muted" style="margin-top: 8px;">
-                        enable_widget: True or False. widget_script: full script URL.
-                        api_base: Skynet API base URL. platform: sent to the API as-is.
-                        manage_by_platform: 1 or 0.
+                        enable_widget: True or False. widget_script: full front-end widget script URL.
+                        site_origin: base origin of the Skynet Video Subtitle service, e.g.
+                        https://ada.skynettechnologies.us (production) or
+                        https://stagingada.skynettechnologies.us (staging) - every dashboard API
+                        endpoint is derived from it. platform: sent to the API as-is on registration.
                     </div>
                 </sheet>
             </form>
@@ -46,9 +48,8 @@
         <field name="domain">[('key', 'in', [
             'skynet_video_subtitle.enable_widget',
             'skynet_video_subtitle.widget_script',
-            'skynet_video_subtitle.api_base',
+            'skynet_video_subtitle.site_origin',
             'skynet_video_subtitle.platform',
-            'skynet_video_subtitle.manage_by_platform',
         ])]</field>
         <field name="context">{'create': False, 'delete': False}</field>
     </record>

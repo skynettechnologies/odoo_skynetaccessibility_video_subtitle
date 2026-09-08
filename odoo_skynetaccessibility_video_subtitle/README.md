@@ -1,12 +1,12 @@
-# SkynetAccessibility Video Subtitle — Odoo
+# SkynetAccessibility Video Subtitle
 
 ## Publish Captioned Video Content with AI-Powered Subtitles
 
 [SkynetAccessibility VideoSubtitle](https://www.skynettechnologies.com/video-accessibility) is an AI-powered video accessibility module for Odoo that automatically generates synchronized subtitles for website videos using advanced speech recognition.
 
-It injects the Skynet Video Subtitle front-end widget script on every public website page, and gives administrators an analytics dashboard (usage, video library, plan packages) served as a website page — helping you publish accessible multimedia content without manually creating captions. Supports accessibility initiatives aligned with WCAG 2.1, 2.2, ADA, Section 508, and EAA EN 301 549, where applicable.
+Improve the accessibility of website videos by automatically generating synchronized subtitles using AI-powered speech recognition. It integrates with Odoo, making it easier to publish accessible multimedia content without manually creating captions. Supports accessibility initiatives aligned with WCAG 2.1, 2.2, ADA, Section 508, and EAA EN 301 549, where applicable.
 
-## Features
+### Features
 
 - Quick subtitle processing
 - Compatible with YouTube, Vimeo, and self-hosted video platforms
@@ -16,20 +16,20 @@ It injects the Skynet Video Subtitle front-end widget script on every public web
 - Supporting over 50+ multi-languages
 - Unlimited video subtitle processing throughout the selected plan
 
-## Ideal For
+### Ideal For
 
 Blog videos, news videos, tutorials, landing page videos, announcements, interviews, webinars, and embedded media.
 
-## Pricing and Plans
+### Pricing and Plans
 
-| **Total Video Playback Time** | **Price / Month** |
+| **Total Video Playback Time**  | **Price / Month**  |
 |--------------------------------|--------------------|
 | Up to 10 Minutes               | $25.00             |
 | Up to 25 Minutes               | $39.00             |
 | Up to 100 Minutes              | $99.00             |
 | Up to 200 Minutes              | $139.00            |
 
-**Note:** Unlimited video subtitle processing is available within the selected plan's total playback time.
+**Note:** Unlimited number of video subtitle processing is available within the selected plan's total playback time.
 
 ## Installation
 
@@ -37,8 +37,7 @@ Blog videos, news videos, tutorials, landing page videos, announcements, intervi
 2. Enable **Developer Mode** if the **Import Module** option isn't visible.
 3. Click **Import Module** and upload the module zip file.
 4. Once installed, the widget script is automatically injected into your website's public pages.
-5. After that you will see the module settings Page on 
-**Settings → SkynetAccessibility Video Subtitle → Dashboard**
+5. After installation, the module settings page is available at **Settings → SkynetAccessibility Video Subtitle → Dashboard**.
 
 ### CORS Policy Configuration
 
@@ -74,11 +73,11 @@ Alternatively, you can send an email to our support team: [hello@skynettechnolog
 
 #### **[Accessibility Agency Partnership](https://www.skynettechnologies.com/agency-partners)**
 
-Partner with us as an agency to provide comprehensive SANITY ADA, EAA, WCAG accessibility solutions to clients. Get access to exclusive resources, training, and support to implement and manage accessibility features effectively.
+Partner with us as an agency to provide comprehensive ODOO ADA, EAA, WCAG accessibility solutions to clients. Get access to exclusive resources, training, and support to implement and manage accessibility features effectively.
 
 #### **[Accessibility Affiliate Partnership](https://www.skynettechnologies.com/affiliate-partner)**
 
-Sign up for our affiliate program and earn commissions by promoting accessibility SANITY plugin. Share our widget with your network and help businesses improve their website accessibility while generating revenue.
+Sign up for our affiliate program and earn commissions by promoting accessibility ODOO module. Share our widget with your network and help businesses improve their website accessibility while generating revenue.
 
 For more details, explore **[Accessibility Partnership Opportunities Page](https://www.skynettechnologies.com/partner-program)**.
 
