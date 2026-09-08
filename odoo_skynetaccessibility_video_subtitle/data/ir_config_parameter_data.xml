@@ -4,6 +4,15 @@
         Default values only. noupdate="1" so a module upgrade never
         overwrites a value the admin has already changed by hand under
         Settings > Technical > Parameters > System Parameters.
+
+        Phase 2: api_base/manage_by_platform (Phase 1's per-endpoint
+        config) are replaced by site_origin, matching the Plone Phase 2
+        port's IVideoSubtitleSettings. api.js derives every endpoint URL
+        (website-video, video-subtitle/packages, video-subtitle/get-start)
+        from this one origin, and manage_by_platform is no longer read by
+        the client at all - registration (get-start) always sends 0 for
+        it, since billing is handled entirely by the Skynet service, not
+        by a host platform.
     -->
     <data noupdate="1">
 
@@ -17,19 +26,14 @@
             <field name="value">https://www.skynettechnologies.com/accessibility/js/video-subtitle/video-subtitle-widget.js</field>
         </record>
 
-        <record id="skynet_vs_param_api_base" model="ir.config_parameter">
-            <field name="key">skynet_video_subtitle.api_base</field>
-            <field name="value">https://ada.skynettechnologies.us/api/</field>
+        <record id="skynet_vs_param_site_origin" model="ir.config_parameter">
+            <field name="key">skynet_video_subtitle.site_origin</field>
+            <field name="value">https://ada.skynettechnologies.us</field>
         </record>
 
         <record id="skynet_vs_param_platform" model="ir.config_parameter">
             <field name="key">skynet_video_subtitle.platform</field>
             <field name="value">Odoo</field>
-        </record>
-
-        <record id="skynet_vs_param_manage_by_platform" model="ir.config_parameter">
-            <field name="key">skynet_video_subtitle.manage_by_platform</field>
-            <field name="value">0</field>
         </record>
 
     </data>
