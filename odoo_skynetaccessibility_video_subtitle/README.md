@@ -4,12 +4,15 @@
 
 [SkynetAccessibility VideoSubtitle](https://www.skynettechnologies.com/video-accessibility) is an AI-powered video accessibility module for Odoo that automatically generates synchronized subtitles for website videos using advanced speech recognition.
 
-It injects the Skynet Video Subtitle front-end widget script on every public website page, and gives administrators an analytics dashboard (usage, video library, plan packages) served as a website page — helping you publish accessible multimedia content without manually creating captions. Supports accessibility initiatives aligned with WCAG 2.1, 2.2, ADA, Section 508, and EAA EN 301 549, where applicable.
+It injects the Skynet Video Subtitle front-end widget script on every public website page, and gives administrators a full analytics-and-remediation dashboard (usage, video library, scanning, per-video subtitle requests, plan packages) served as a website page — helping you publish accessible multimedia content without manually creating captions. Supports accessibility initiatives aligned with WCAG 2.1, 2.2, ADA, Section 508, and EAA EN 301 549, where applicable.
 
 ## Features
 
 - Quick subtitle processing
 - Compatible with YouTube, Vimeo, and self-hosted video platforms
+- Website scanning to automatically discover videos, with batch and full-site scan modes
+- Per-video remediation requests, including Single Language and Multiple Languages subtitles
+- Decorative-video detection and toggle, so purely decorative videos are skipped
 - Audio and video summary report
 - Simple installation and configuration
 - Support for existing and newly published videos
