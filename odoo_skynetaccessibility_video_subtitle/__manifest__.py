@@ -11,12 +11,15 @@
     'license': 'LGPL-3',
     'depends': ['base', 'web', 'website'],
     'data': [
-        'data/ir_config_parameter_data.xml',
         'templates/website_widget_template.xml',
-        'website/dashboard_page.xml',
         'views/video_subtitle_menu.xml',
     ],
-    'images': ['static/description/icon.png'],
+    'assets': {
+        'web.assets_backend': [
+            'odoo_skynetaccessibility_video_subtitle/static/src/client/dashboard_action.js',
+        ],
+    },
+    'images': ['static/description/banner.jpg'],
     'installable': True,
     'application': True,
     'auto_install': False,

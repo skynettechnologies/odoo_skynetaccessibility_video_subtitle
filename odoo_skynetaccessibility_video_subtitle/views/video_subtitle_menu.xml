@@ -2,55 +2,31 @@
 <odoo>
 
     <!--
-        No custom model/fields are defined (Import Module does not load
-        Python), so this settings screen edits the two
-        ir.config_parameter rows this module ships directly - key/value
-        are stock fields on that model. The list view below just gives
-        them friendlier labels than the generic System Parameters grid.
+        Opens the dashboard inside the backend (client action in
+        static/src/client/dashboard_action.js, URL
+        /odoo/skynetaccessibility_video_subtitle_dashboard). A server action
+        (not a controller) so the module needs no Python and still loads
+        through Apps > Import Module. It only passes the signed-in user's
+        name and email on as params. The API origin and platform are fixed in
+        static/src/js/api.js, not stored in System Parameters.
     -->
-    <record id="view_skynet_vs_config_param_list" model="ir.ui.view">
-        <field name="name">skynet.video.subtitle.config.param.list</field>
-        <field name="model">ir.config_parameter</field>
-        <field name="arch" type="xml">
-            <list string="SkynetAccessibility Video Subtitle Settings" editable="bottom">
-                <field name="key" readonly="1" string="Setting"/>
-                <field name="value" string="Value"/>
-            </list>
-        </field>
-    </record>
-
-    <record id="view_skynet_vs_config_param_form" model="ir.ui.view">
-        <field name="name">skynet.video.subtitle.config.param.form</field>
-        <field name="model">ir.config_parameter</field>
-        <field name="arch" type="xml">
-            <form string="SkynetAccessibility Video Subtitle Settings">
-                <sheet>
-                    <group>
-                        <field name="key" readonly="1" string="Setting"/>
-                        <field name="value" string="Value"/>
-                    </group>
-                    <div class="text-muted" style="margin-top: 8px;">
-                        enable_widget: True or False. widget_script: full script URL.
-                        api_base: Skynet API base URL. platform: sent to the API as-is.
-                        manage_by_platform: 1 or 0.
-                    </div>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="action_skynet_vs_config_param" model="ir.actions.act_window">
-        <field name="name">SkynetAccessibility Video Subtitle Settings</field>
-        <field name="res_model">ir.config_parameter</field>
-        <field name="view_mode">list,form</field>
-        <field name="domain">[('key', 'in', [
-            'skynet_video_subtitle.enable_widget',
-            'skynet_video_subtitle.widget_script',
-            'skynet_video_subtitle.api_base',
-            'skynet_video_subtitle.platform',
-            'skynet_video_subtitle.manage_by_platform',
-        ])]</field>
-        <field name="context">{'create': False, 'delete': False}</field>
+    <record id="action_skynet_vs_dashboard" model="ir.actions.server">
+        <field name="name">SkynetAccessibility Video Subtitle</field>
+        <field name="model_id" ref="base.model_ir_config_parameter"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+login = user.login or ''
+config = {
+    'userName': user.name or '',
+    'userEmail': user.email or user.partner_id.email or env.company.email or (login if '@' in login else ''),
+}
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'skynetaccessibility_video_subtitle_dashboard',
+    'name': 'SkynetAccessibility Video Subtitle',
+    'params': {'config': config},
+}
+]]></field>
     </record>
 
     <menuitem id="menu_skynet_video_subtitle_root"
@@ -61,13 +37,8 @@
     <menuitem id="menu_skynet_video_subtitle_dashboard"
               name="Dashboard"
               parent="menu_skynet_video_subtitle_root"
-              action="action_skynet_vs_dashboard_url"
+              action="action_skynet_vs_dashboard"
               sequence="10"/>
 
-    <menuitem id="menu_skynet_video_subtitle_settings"
-              name="Configuration"
-              parent="menu_skynet_video_subtitle_root"
-              action="action_skynet_vs_config_param"
-              sequence="20"/>
 
 </odoo>
